@@ -153,21 +153,85 @@
   #globe-container canvas { display:block; }
   #globe-container.is-dragging { cursor: grabbing; }
 
-  /* Modal */
-  body.modal-open { overflow: hidden; }
+ /* ===================== MODAL ===================== */
+  #plan-modal{
+    position: fixed;
+    inset: 0;
+    z-index: 9999;               /* acima de tudo */
+    display: none;               /* escondido por padrão */
+  }
+  #plan-modal.open{ display:block; }
 
-  /* Acessibilidade — desliga animações se o usuário preferir */
-  @media (prefers-reduced-motion: reduce) {
-    .fade-in-section { animation: none !important; opacity: 1 !important; transform: none !important; }
-    .carousel-track.is-marquee { animation: none !important; transform: none !important; }
+  /* camada escura ao fundo */
+  #plan-modal .modal-backdrop{
+    position:absolute; inset:0;
+    background: rgba(2,6,23,.78);   /* slate-950 com alpha */
+    backdrop-filter: blur(3px);     /* leve blur p/ destacar o diálogo */
   }
 
-  #plan-modal{ position: fixed; left: 0; right: 0; bottom: 0; top: var(--header-h, 0px); z-index: 60; }
+  /* wrapper garante que o conteúdo fique acima da backdrop */
   #plan-modal .modal-wrapper{
-    height: calc(100vh - var(--header-h, 0px));
-    display:flex; align-items:center; justify-content:center; padding: 1rem;
+    position:relative; z-index:10;
+    height: 100%;
+    display:flex; align-items:center; justify-content:center;
+    padding: clamp(12px, 2vw, 24px);
   }
-  @media (min-width: 768px){ #plan-modal .modal-wrapper{ padding: 1.5rem; } }
+
+  /* caixa do diálogo */
+  #plan-modal .dialog{
+    width: min(1000px, 92vw);
+    max-height: 86vh;                    /* mais baixo pra não encostar */
+    display: grid;
+    grid-template-columns: 1fr;          /* mobile: 1 coluna */
+    gap: 0;
+    border-radius: 16px;
+    overflow: hidden;
+    background: #0b1120;                 /* slate-950 */
+    border: 1px solid rgba(148,163,184,.18);
+    box-shadow: 0 30px 80px rgba(0,0,0,.55), 0 0 0 1px rgba(0,0,0,.4) inset;
+  }
+  @media (min-width: 768px){
+    #plan-modal .dialog{ grid-template-columns: 1fr 1.15fr; }
+  }
+
+  /* mídia do lado esquerdo (só desktop) */
+  #plan-modal .modal-media{ display:none; position:relative; }
+  @media (min-width:768px){
+    #plan-modal .modal-media{ display:block; }
+    #plan-modal .modal-media img{
+      position:absolute; inset:0; width:100%; height:100%; object-fit:cover;
+      filter: saturate(1.05);
+    }
+  }
+
+  /* conteúdo de texto */
+  #plan-modal .modal-content{
+    padding: clamp(18px, 3.2vw, 28px);
+    display:flex; flex-direction:column; justify-content:space-between;
+    overflow:auto;
+  }
+  #plan-modal h3{ color:#fff; font-weight:800; font-size: clamp(22px, 2.4vw, 28px); }
+  #plan-modal p{ color:#cbd5e1; }
+  #plan-modal #modal-subtitle{ color:#94a3b8; margin-top:4px; }
+  #plan-modal ul{ margin-top:14px; color:#d1d5db; }
+  #plan-modal li{ margin: 6px 0; }
+
+  /* ações */
+  #plan-modal .modal-actions{
+    display:flex; gap:10px; justify-content:center; align-items:center;
+    margin-top: 18px;
+  }
+  #plan-modal .btn-close{
+    border-radius:999px; padding:.75rem 1rem;
+    background:#1f2937; color:#e5e7eb;   /* slate-800 / 200 */
+  }
+  #plan-modal .btn-close:hover{ background:#374151; }
+
+  /* acessibilidade: quando preferir reduzir movimentos */
+  @media (prefers-reduced-motion: reduce){
+    #plan-modal .dialog{ transition:none !important; }
+  }
+
 </style>
 
 </head>
@@ -537,32 +601,29 @@
       </div>
 
 	<!-- MODAL DE PLANOS -->
-	<div id="plan-modal" class="hidden">
-	  <div class="absolute inset-0 bg-black/70" onclick="closeModal()" aria-hidden="true"></div>
-	  <div class="modal-wrapper relative w-full">
-		<div
-		  class="dialog w-[min(92vw,1000px)] bg-slate-950 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl ring-1 ring-black/5 grid md:grid-cols-2"
-		  style="max-height: calc(100vh - var(--header-h, 0px) - 2rem);"
-		>
-		  <div class="relative hidden md:block">
-			<img id="modal-image" src="" alt="" class="absolute inset-0 w-full h-full object-cover" loading="lazy" decoding="async">
-		  </div>
-		  <div class="p-6 md:p-8 flex flex-col justify-between overflow-y-auto">
-			<div>
-			  <h3 id="modal-title" class="text-2xl font-bold text-white"></h3>
-			  <p id="modal-subtitle" class="text-slate-400 mt-1"></p>
-			  <p id="modal-description" class="text-slate-300 mt-4"></p>
-			  <ul id="modal-features" class="mt-6 space-y-2 text-slate-300"></ul>
-			</div>
-			<div class="mt-8 flex gap-3 justify-center pt-4">
-			  <a id="modal-cta" href="#" target="_blank" rel="noopener" class="gradient-button text-white px-5 py-3 rounded-full font-semibold">
-				Quero este formato
-			  </a>
-			  <button onclick="closeModal()" class="px-5 py-3 rounded-full bg-slate-800 text-slate-200 hover:bg-slate-700">Fechar</button>
-			</div>
-		  </div>
+	<div id="plan-modal" class="hidden" aria-modal="true" role="dialog">
+	<div class="modal-backdrop" aria-hidden="true"></div>
+	<div class="modal-wrapper">
+		<div class="dialog" role="document">
+		<div class="modal-media">
+			<img id="modal-image" alt="" loading="lazy" decoding="async">
 		</div>
-	  </div>
+		<div class="modal-content">
+			<div>
+			<h3 id="modal-title"></h3>
+			<p id="modal-subtitle"></p>
+			<p id="modal-description" class="mt-4"></p>
+			<ul id="modal-features" class="mt-2"></ul>
+			</div>
+			<div class="modal-actions">
+			<a id="modal-cta" href="#" target="_blank" rel="noopener" class="gradient-button text-white px-5 py-3 rounded-full font-semibold">
+				Quero este formato
+			</a>
+			<button type="button" class="btn-close" onclick="closeModal()">Fechar</button>
+			</div>
+		</div>
+		</div>
+	</div>
 	</div>
     </section>
 
@@ -827,53 +888,76 @@ document.addEventListener('DOMContentLoaded', () => {
   let _resizeHandler = null;
   let _outsideClickHandler = null;
 
-  function setModalOffset() {
-    const header = document.querySelector('header');
-    const modal  = document.getElementById('plan-modal');
-    const dialog = modal?.querySelector('.dialog');
-    const wrapper = modal?.querySelector('.modal-wrapper');
+  function setModalOffset(){
+    // garante que a caixa nunca encoste no topo ao considerar o header sticky
+    const header = document.getElementById('site-header');
     const h = header ? header.offsetHeight : 0;
-    if (wrapper) wrapper.style.paddingTop = `${16}px`;
-    if (dialog)  dialog.style.maxHeight = `calc(100vh - ${h + 32}px)`;
-    modal?.style.setProperty('--header-h', `${h}px`);
+    const modal = document.getElementById('plan-modal');
+    const wrapper = modal?.querySelector('.modal-wrapper');
+    if(wrapper){ wrapper.style.paddingTop = `${Math.max(16, h + 12)}px`; }
   }
 
-  function openModal(planKey) {
+  function openModal(planKey){
     const planModal = document.getElementById('plan-modal');
-    const details = planDetails[planKey];
-    if (!planModal || !details) return;
+    const details   = planDetails[planKey];
+    if(!planModal || !details) return;
 
+    // popula conteúdo
     const img = document.getElementById('modal-image');
-    if (img) { img.src = details.imageSrc || ""; img.alt = details.imageAlt || details.title || "Imagem ilustrativa"; }
-    $('#modal-title').textContent = details.title;
-    $('#modal-subtitle').textContent = details.subtitle;
-    $('#modal-description').textContent = details.description;
+    if(img){ img.src = details.imageSrc || ""; img.alt = details.imageAlt || details.title || "Imagem ilustrativa"; }
+    document.getElementById('modal-title').textContent       = details.title;
+    document.getElementById('modal-subtitle').textContent    = details.subtitle;
+    document.getElementById('modal-description').textContent = details.description;
 
-    const ul = $('#modal-features'); ul.innerHTML = '';
-    details.features.forEach(f => { const li = document.createElement('li'); li.innerHTML = `<span class="text-cyan-400 mr-2">✓</span>${f}`; ul.appendChild(li); });
+    const ul = document.getElementById('modal-features'); ul.innerHTML = "";
+    details.features.forEach(f=>{
+      const li = document.createElement('li');
+      li.innerHTML = `<span class="text-cyan-400 mr-2">✓</span>${f}`;
+      ul.appendChild(li);
+    });
 
-    const cta = $('#modal-cta');
-    if (cta) { cta.href = buildWaLink(details.waMessage); cta.target = "_blank"; cta.rel = "noopener"; }
+    // CTA – garante link do Whats
+    const cta = document.getElementById('modal-cta');
+    cta.setAttribute('href', buildWaLink(details.waMessage));
+    cta.setAttribute('target','_blank');
+    cta.setAttribute('rel','noopener');
 
-    setModalOffset();
+    // mostra modal
     planModal.classList.remove('hidden');
+    planModal.classList.add('open');
     document.body.classList.add('modal-open');
 
-    _resizeHandler = () => setModalOffset();
+    setModalOffset();
+    _resizeHandler = ()=> setModalOffset();
     window.addEventListener('resize', _resizeHandler);
 
+    // fecha ao clicar fora (mas não dentro do dialog)
     const dialog = planModal.querySelector('.dialog');
-    _outsideClickHandler = (e) => { if (!dialog) return; if (!dialog.contains(e.target)) closeModal(); };
+    _outsideClickHandler = (ev)=>{
+      if(!dialog.contains(ev.target)) closeModal();
+    };
     planModal.addEventListener('click', _outsideClickHandler);
+
+    // Esc fecha
+    document.addEventListener('keydown', onEscClose);
   }
 
-  function closeModal() {
+  function onEscClose(e){
+    if(e.key === 'Escape' || e.key === 'Esc') closeModal();
+  }
+
+  function closeModal(){
     const planModal = document.getElementById('plan-modal');
-    if (!planModal) return;
+    if(!planModal) return;
+
+    planModal.classList.remove('open');
     planModal.classList.add('hidden');
     document.body.classList.remove('modal-open');
-    if (_resizeHandler) { window.removeEventListener('resize', _resizeHandler); _resizeHandler = null; }
-    if (_outsideClickHandler) { planModal.removeEventListener('click', _outsideClickHandler); _outsideClickHandler = null; }
+
+    // limpa handlers
+    if(_resizeHandler){ window.removeEventListener('resize', _resizeHandler); _resizeHandler = null; }
+    if(_outsideClickHandler){ planModal.removeEventListener('click', _outsideClickHandler); _outsideClickHandler = null; }
+    document.removeEventListener('keydown', onEscClose);
   }
 
   // Autoplay infinito para carrossel
