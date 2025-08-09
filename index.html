@@ -702,11 +702,12 @@
   }
 
   // ===== Carrossel base =====
+  // Configuração inicial do carrossel
   function setupCarousel(rootId) {
     const root = document.getElementById(rootId);
     if (!root) return;
 
-    const viewport = root; // já é o container com overflow hidden
+    const viewport = root; // container com overflow hidden
     const prev = root.querySelector('.carousel-btn.prev');
     const next = root.querySelector('.carousel-btn.next');
     const step = () => Math.max(viewport.clientWidth * 0.8, 300);
@@ -715,39 +716,56 @@
     next?.addEventListener('click', () => viewport.scrollBy({ left:  step(), behavior: 'smooth' }));
   }
 
-  // NOVO: autoplay infinito, fluido e sem pausa
-  function enableInfiniteCarousel(rootId, speedPxPerSec = 70) {
-    const root = document.getElementById(rootId);
-    if (!root) return;
-    const track = root.querySelector('.carousel-track');
-    if (!track) return;
+  // Loop infinito contínuo (sem pausa)
+	function enableInfiniteCarousel(rootId, speedPxPerSec = 40) {
+	const root = document.getElementById(rootId);
+	if (!root) return;
+	const track = root.querySelector('.carousel-track');
+	if (!track) return;
+	
+	// Evita inicializar 2x
+	if (track.classList.contains('is-marquee')) return;
+	
+	// Duplicar itens para evitar "pulo" no loop (apenas uma vez)
+	if (!track.dataset.duplicated) {
+		const frag = document.createDocumentFragment();
+		Array.from(track.children).forEach(node => frag.appendChild(node.cloneNode(true)));
+		track.appendChild(frag);
+		track.dataset.duplicated = 'true';
+	}
+	
+	// Função que aplica/atualiza a animação conforme o tamanho
+	const applyMarquee = () => {
+		// remove/força reflow para reiniciar suavemente
+		track.classList.remove('is-marquee');
+		// força reflow (reinicia a animação sem "pulo")
+		// eslint-disable-next-line no-unused-expressions
+		track.offsetHeight;
+	
+		const distance = track.scrollWidth / 2;          // px (metade porque duplicamos)
+		const duration = distance / speedPxPerSec;       // s (velocidade em px/s)
+		track.style.setProperty('--marquee-distance', `${distance}px`);
+		track.style.setProperty('--marquee-duration', `${duration}s`);
+		track.classList.add('is-marquee');
+	};
+	
+	// Observa mudanças de tamanho e reaplica a animação
+	const ro = new ResizeObserver(applyMarquee);
+	ro.observe(track);
+	
+	// Primeira ativação
+	requestAnimationFrame(applyMarquee);
+	}
 
-    // Duplica os itens para viabilizar o loop contínuo sem "pulo"
-    const clones = document.createDocumentFragment();
-    Array.from(track.children).forEach(node => clones.appendChild(node.cloneNode(true)));
-    track.appendChild(clones);
+document.addEventListener('DOMContentLoaded', () => {
+  // Habilitar setas (opcional; não interfere no autoplay)
+  setupCarousel('carousel-tec');
+  setupCarousel('carousel-setores');
 
-    // Calcula a distância (metade do conteúdo, já que duplicamos)
-    // e define a duração com base na velocidade desejada (px/seg)
-    requestAnimationFrame(() => {
-      const distance = track.scrollWidth / 2;             // px
-      const duration = distance / speedPxPerSec;          // seg
-      track.style.setProperty('--marquee-distance', `${distance}px`);
-      track.style.setProperty('--marquee-duration', `${duration}s`);
-      track.classList.add('is-marquee');
-    });
-  }
-
-  document.addEventListener('DOMContentLoaded', () => {
-    // Mantém os botões funcionando (se quiser remover, só tirar o setupCarousel)
-    setupCarousel('carousel-tec');
-    setupCarousel('carousel-setores');
-
-    // Liga o loop infinito (ajuste as velocidades a gosto)
-    enableInfiniteCarousel('carousel-tec', 10);
-    enableInfiniteCarousel('carousel-setores', 10);
-  });
-
+  // Iniciar autoplay infinito sem pausa
+  enableInfiniteCarousel('carousel-tec', 15);   // ajuste de velocidade (px/s)
+  enableInfiniteCarousel('carousel-setores', 15);
+});
   // ---- MODAL DE PLANOS (dados) ----
   const planDetails = {
     healthCheck: {
@@ -1043,9 +1061,6 @@
     setupCarousel('carousel-tec');
     setupCarousel('carousel-setores');
 
-    // Autoplay infinito
-    enableCarouselAutoplay('carousel-tec', 48);
-    enableCarouselAutoplay('carousel-setores', 42);
   });
 </script>
 </body>
