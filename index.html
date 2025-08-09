@@ -92,14 +92,24 @@
   main > section { position: relative; z-index: 1; }
 
   /* ==== Carrossel base ==== */
-  .carousel{ position:relative; overflow-x:hidden; }
-	.carousel-track{
-	  display:flex;
-	  gap:2rem;
-	  padding:1rem .5rem;
-	}
+  .carousel { position: relative; overflow: hidden; }
+  .carousel-track {
+    display: flex;
+    gap: 2rem;
+    padding: 1rem .5rem;
+  }
   .carousel-track::-webkit-scrollbar { display: none; }
-  .carousel-item { flex: 0 0 auto; scroll-snap-align: center; }
+  .carousel-item { flex: 0 0 auto; }
+
+  /* ===== Autoplay infinito (GPU) ===== */
+  .carousel-track.is-marquee {
+    will-change: transform;
+    animation: marquee var(--marquee-duration, 30s) linear infinite;
+  }
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to   { transform: translateX(calc(-1 * var(--marquee-distance, 1000px))); }
+  }
 
   /* Cards de logo */
   .logo-card {
@@ -115,6 +125,7 @@
   .logo-img { max-height: 2.25rem; max-width: 9.5rem; object-fit: contain; filter: grayscale(100%) opacity(80%); transition: filter .2s ease, transform .2s ease; }
   .logo-card:hover .logo-img { filter: grayscale(0%) opacity(100%); transform: scale(1.02); }
 
+  /* Esconde setas (se quiser mostrar no desktop, remova esta linha) */
   .carousel-btn { display: none !important; }
 
   @media (max-width: 768px) {
@@ -138,15 +149,19 @@
   .sector-name { font-size: .75rem; letter-spacing: .08em; text-transform: uppercase; color: #e5e7eb; font-weight: 700; }
 
   /* Globo */
-	#globe-container { border-radius: 1rem; overflow: hidden; position: relative; }
-	#globe-container canvas { display:block; }
-	#globe-container.is-dragging { cursor: grabbing; }
+  #globe-container { border-radius: 1rem; overflow: hidden; position: relative; }
+  #globe-container canvas { display:block; }
+  #globe-container.is-dragging { cursor: grabbing; }
 
   /* Modal */
   body.modal-open { overflow: hidden; }
+
+  /* Acessibilidade — desliga animações se o usuário preferir */
   @media (prefers-reduced-motion: reduce) {
     .fade-in-section { animation: none !important; opacity: 1 !important; transform: none !important; }
+    .carousel-track.is-marquee { animation: none !important; transform: none !important; }
   }
+
   #plan-modal{ position: fixed; left: 0; right: 0; bottom: 0; top: var(--header-h, 0px); z-index: 60; }
   #plan-modal .modal-wrapper{
     height: calc(100vh - var(--header-h, 0px));
@@ -691,7 +706,7 @@
     const root = document.getElementById(rootId);
     if (!root) return;
 
-    const viewport = root;
+    const viewport = root; // já é o container com overflow hidden
     const prev = root.querySelector('.carousel-btn.prev');
     const next = root.querySelector('.carousel-btn.next');
     const step = () => Math.max(viewport.clientWidth * 0.8, 300);
@@ -699,6 +714,39 @@
     prev?.addEventListener('click', () => viewport.scrollBy({ left: -step(), behavior: 'smooth' }));
     next?.addEventListener('click', () => viewport.scrollBy({ left:  step(), behavior: 'smooth' }));
   }
+
+  // NOVO: autoplay infinito, fluido e sem pausa
+  function enableInfiniteCarousel(rootId, speedPxPerSec = 70) {
+    const root = document.getElementById(rootId);
+    if (!root) return;
+    const track = root.querySelector('.carousel-track');
+    if (!track) return;
+
+    // Duplica os itens para viabilizar o loop contínuo sem "pulo"
+    const clones = document.createDocumentFragment();
+    Array.from(track.children).forEach(node => clones.appendChild(node.cloneNode(true)));
+    track.appendChild(clones);
+
+    // Calcula a distância (metade do conteúdo, já que duplicamos)
+    // e define a duração com base na velocidade desejada (px/seg)
+    requestAnimationFrame(() => {
+      const distance = track.scrollWidth / 2;             // px
+      const duration = distance / speedPxPerSec;          // seg
+      track.style.setProperty('--marquee-distance', `${distance}px`);
+      track.style.setProperty('--marquee-duration', `${duration}s`);
+      track.classList.add('is-marquee');
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    // Mantém os botões funcionando (se quiser remover, só tirar o setupCarousel)
+    setupCarousel('carousel-tec');
+    setupCarousel('carousel-setores');
+
+    // Liga o loop infinito (ajuste as velocidades a gosto)
+    enableInfiniteCarousel('carousel-tec', 10);
+    enableInfiniteCarousel('carousel-setores', 10);
+  });
 
   // ---- MODAL DE PLANOS (dados) ----
   const planDetails = {
