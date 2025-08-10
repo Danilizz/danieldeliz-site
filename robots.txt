@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+# Quando criarmos o sitemap, este caminho já estará pronto:
+Sitemap: https://danilizz.github.io/danieldeliz-site/sitemap.xml
