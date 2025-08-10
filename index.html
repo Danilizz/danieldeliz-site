@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="google-site-verification" content="xZH7SdK_6rKiP8kL5gID-zzRRN2td0isvQYW2LisgNk" />
 
   <title>Daniel De Liz | DBA Oracle Especialista em Missão Crítica</title>
   <meta name="description" content="Consultoria de elite em Oracle para empresas que exigem performance extrema, segurança absoluta e disponibilidade inabalável. Fale com um especialista.">
@@ -91,41 +92,44 @@
   }
   main > section { position: relative; z-index: 1; }
 
-  /* ==== Carrossel base ==== */
-  .carousel { position: relative; overflow: hidden; }
-  .carousel-track {
-    display: flex;
-    gap: 2rem;
-    padding: 1rem .5rem;
-  }
+  /* ==== Carrossel base (scroll-snap) ==== */
+  .carousel{ position:relative; overflow-x:hidden; } /* o container controla o overflow */
+	.carousel-track{
+	display:flex;
+	gap:2rem;
+	padding:1rem .5rem;
+	/* sem overflow-x e sem scroll-snap aqui para autoplay suave */
+	}
+  /* Remove completamente qualquer barra */
   .carousel-track::-webkit-scrollbar { display: none; }
-  .carousel-item { flex: 0 0 auto; }
+  .carousel-item { flex: 0 0 auto; scroll-snap-align: center; }
 
-  /* ===== Autoplay infinito (GPU) ===== */
-  .carousel-track.is-marquee {
-    will-change: transform;
-    animation: marquee var(--marquee-duration, 30s) linear infinite;
-  }
-  @keyframes marquee {
-    from { transform: translateX(0); }
-    to   { transform: translateX(calc(-1 * var(--marquee-distance, 1000px))); }
-  }
-
-  /* Cards de logo */
+  /* Cards de logo padronizados – impedem “enfileiramento” */
   .logo-card {
-    width: 11rem; height: 4.5rem;
+    width: 11rem;  /* 176px */
+    height: 4.5rem;/* 72px  */
     border: 1px solid rgba(148,163,184,.15);
     border-radius: .75rem;
     background: rgba(15,23,42,.6);
-    display:flex; align-items:center; justify-content:center;
+    display: flex; align-items: center; justify-content: center;
     transition: transform .2s ease, border-color .2s ease, background .2s ease, filter .2s ease;
     user-select: none;
   }
-  .logo-card:hover { transform: translateY(-2px); border-color: rgba(6,182,212,.4); background: rgba(15,23,42,.8); }
-  .logo-img { max-height: 2.25rem; max-width: 9.5rem; object-fit: contain; filter: grayscale(100%) opacity(80%); transition: filter .2s ease, transform .2s ease; }
+  .logo-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(6,182,212,.4);
+    background: rgba(15,23,42,.8);
+  }
+  .logo-img {
+    max-height: 2.25rem;  /* ~36px */
+    max-width: 9.5rem;
+    object-fit: contain;
+    filter: grayscale(100%) opacity(80%);
+    transition: filter .2s ease, transform .2s ease;
+  }
   .logo-card:hover .logo-img { filter: grayscale(0%) opacity(100%); transform: scale(1.02); }
 
-  /* Esconde setas (se quiser mostrar no desktop, remova esta linha) */
+  /* Botões do carrossel (setas) – removidos totalmente */
   .carousel-btn { display: none !important; }
 
   @media (max-width: 768px) {
@@ -133,7 +137,7 @@
     .logo-img  { max-height: 2rem; max-width: 8.5rem; }
   }
 
-  /* Setores */
+  /* Setores (ícones + texto) no mesmo padrão de card */
   .sector-card {
     width: 10rem; height: 6.5rem;
     border: 1px solid rgba(148,163,184,.15);
@@ -149,87 +153,32 @@
   .sector-name { font-size: .75rem; letter-spacing: .08em; text-transform: uppercase; color: #e5e7eb; font-weight: 700; }
 
   /* Globo */
-  #globe-container { border-radius: 1rem; overflow: hidden; position: relative; }
-  #globe-container canvas { display:block; }
-  #globe-container.is-dragging { cursor: grabbing; }
+	#globe-container { border-radius: 1rem; overflow: hidden; position: relative; }
+	#globe-container canvas { display:block; }
+	#globe-container.is-dragging { cursor: grabbing; }
 
- /* ===================== MODAL ===================== */
+	
+  /* Scroll lock com modal aberto */
+  body.modal-open { overflow: hidden; }
+
+  /* Acessibilidade: reduzir movimento */
+  @media (prefers-reduced-motion: reduce) {
+    .fade-in-section { animation: none !important; opacity: 1 !important; transform: none !important; }
+  }
+  
   #plan-modal{
-    position: fixed;
-    inset: 0;
-    z-index: 9999;               /* acima de tudo */
-    display: none;               /* escondido por padrão */
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  top: var(--header-h, 0px);  /* começa após o header */
+  z-index: 60;
   }
-  #plan-modal.open{ display:block; }
-
-  /* camada escura ao fundo */
-  #plan-modal .modal-backdrop{
-    position:absolute; inset:0;
-    background: rgba(2,6,23,.78);   /* slate-950 com alpha */
-    backdrop-filter: blur(3px);     /* leve blur p/ destacar o diálogo */
-  }
-
-  /* wrapper garante que o conteúdo fique acima da backdrop */
   #plan-modal .modal-wrapper{
-    position:relative; z-index:10;
-    height: 100%;
-    display:flex; align-items:center; justify-content:center;
-    padding: clamp(12px, 2vw, 24px);
-  }
-
-  /* caixa do diálogo */
-  #plan-modal .dialog{
-    width: min(1000px, 92vw);
-    max-height: 86vh;                    /* mais baixo pra não encostar */
-    display: grid;
-    grid-template-columns: 1fr;          /* mobile: 1 coluna */
-    gap: 0;
-    border-radius: 16px;
-    overflow: hidden;
-    background: #0b1120;                 /* slate-950 */
-    border: 1px solid rgba(148,163,184,.18);
-    box-shadow: 0 30px 80px rgba(0,0,0,.55), 0 0 0 1px rgba(0,0,0,.4) inset;
+  height: calc(100vh - var(--header-h, 0px)); /* apenas a área útil abaixo do header */
+  display: flex; align-items: center; justify-content: center;
+  padding: 1rem;
   }
   @media (min-width: 768px){
-    #plan-modal .dialog{ grid-template-columns: 1fr 1.15fr; }
-  }
-
-  /* mídia do lado esquerdo (só desktop) */
-  #plan-modal .modal-media{ display:none; position:relative; }
-  @media (min-width:768px){
-    #plan-modal .modal-media{ display:block; }
-    #plan-modal .modal-media img{
-      position:absolute; inset:0; width:100%; height:100%; object-fit:cover;
-      filter: saturate(1.05);
-    }
-  }
-
-  /* conteúdo de texto */
-  #plan-modal .modal-content{
-    padding: clamp(18px, 3.2vw, 28px);
-    display:flex; flex-direction:column; justify-content:space-between;
-    overflow:auto;
-  }
-  #plan-modal h3{ color:#fff; font-weight:800; font-size: clamp(22px, 2.4vw, 28px); }
-  #plan-modal p{ color:#cbd5e1; }
-  #plan-modal #modal-subtitle{ color:#94a3b8; margin-top:4px; }
-  #plan-modal ul{ margin-top:14px; color:#d1d5db; }
-  #plan-modal li{ margin: 6px 0; }
-
-  /* ações */
-  #plan-modal .modal-actions{
-    display:flex; gap:10px; justify-content:center; align-items:center;
-    margin-top: 18px;
-  }
-  #plan-modal .btn-close{
-    border-radius:999px; padding:.75rem 1rem;
-    background:#1f2937; color:#e5e7eb;   /* slate-800 / 200 */
-  }
-  #plan-modal .btn-close:hover{ background:#374151; }
-
-  /* acessibilidade: quando preferir reduzir movimentos */
-  @media (prefers-reduced-motion: reduce){
-    #plan-modal .dialog{ transition:none !important; }
+  #plan-modal .modal-wrapper{ padding: 1.5rem; }
   }
 
 </style>
@@ -237,7 +186,7 @@
 </head>
 <body class="aurora-bg">
 
-  <header id="site-header" class="bg-slate-950/70 backdrop-blur-lg sticky top-0 z-50 shadow-cyan-500/10 shadow-lg">
+  <header class="bg-slate-950/70 backdrop-blur-lg sticky top-0 z-50 shadow-cyan-500/10 shadow-lg">
     <nav class="mx-auto max-w-7xl px-6 py-4 flex justify-between items-center">
       <a href="#" class="text-2xl font-black text-white tracking-tight">Daniel De Liz.</a>
 
@@ -451,7 +400,7 @@
             <h3 class="font-bold text-xl text-cyan-400 mb-3">Arquitetura de Alta Disponibilidade</h3>
             <p class="text-slate-400">Desenho e gestão de arquiteturas de missão crítica com Oracle RAC, Data Guard e GoldenGate. Garanto a continuidade do seu negócio com soluções de tolerância a falhas.</p>
           </article>
-          <article class="bg-slate-900/50 p-8 rounded-xl border border-slate-800 hover:border-cyan-500/50 transition-colors duration-300 shadow-lg">
+          <article class="bg-slate-900/50 p-8 rounded-xl border border-slate-800 hover:border-cyan-500/50 transition-colors duração-300 shadow-lg">
             <h3 class="font-bold text-xl text-cyan-400 mb-3">Segurança e Compliance</h3>
             <p class="text-slate-400">Implementação de TDE, políticas de auditoria rigorosas, gestão de privilégios e adequação a normas de segurança como LGPD, protegendo seus dados mais sensíveis.</p>
           </article>
@@ -527,7 +476,7 @@
               </div>
             </div>
           </div>
-          <div class="bg-slate-900 p-8 rounded-xl border border-slate-800 flex flex-col items-start transform hover:scale-105 hover:border-cyan-500 transition-all duration-300">
+          <div class="bg-slate-900 p-8 rounded-xl border border-slate-800 flex flex-col items-start transform hover:scale-105 hover:border-cyan-500 transition-all duração-300">
             <p class="text-5xl text-cyan-600 font-black">“</p>
             <blockquote class="text-slate-300 text-lg italic leading-relaxed -mt-4 flex-grow">
               A expertise do Daniel em TDE e políticas de acesso foi fundamental. Ele nos guiou em todo o processo de adequação e nos deu a segurança para <strong>passar na auditoria</strong> sem ressalvas.
@@ -600,71 +549,103 @@
         </div>
       </div>
 
-	<!-- MODAL DE PLANOS -->
-	<div id="plan-modal" class="hidden" aria-modal="true" role="dialog">
-	<div class="modal-backdrop" aria-hidden="true"></div>
-	<div class="modal-wrapper">
-		<div class="dialog" role="document">
-		<div class="modal-media">
-			<img id="modal-image" alt="" loading="lazy" decoding="async">
+	<!-- MODAL DE PLANOS (alinhado abaixo do header) -->
+	<div id="plan-modal" class="hidden">
+	<!-- overlay dentro da área útil (não cobre o header) -->
+	<div class="absolute inset-0 bg-black/70" onclick="closeModal()" aria-hidden="true"></div>
+	
+	<!-- wrapper centralizador -->
+	<div class="modal-wrapper relative w-full">
+		<!-- dialog -->
+		<div
+		class="dialog w-[min(92vw,1000px)] bg-slate-950 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl ring-1 ring-black/5 grid md:grid-cols-2"
+		style="max-height: calc(100vh - var(--header-h, 0px) - 2rem);"
+		>
+		<!-- coluna da imagem -->
+		<div class="relative hidden md:block">
+			<img id="modal-image" src="" alt="" class="absolute inset-0 w-full h-full object-cover" loading="lazy" decoding="async">
 		</div>
-		<div class="modal-content">
+	
+		<!-- conteúdo -->
+		<div class="p-6 md:p-8 flex flex-col justify-between overflow-y-auto">
 			<div>
-			<h3 id="modal-title"></h3>
-			<p id="modal-subtitle"></p>
-			<p id="modal-description" class="mt-4"></p>
-			<ul id="modal-features" class="mt-2"></ul>
+			<h3 id="modal-title" class="text-2xl font-bold text-white"></h3>
+			<p id="modal-subtitle" class="text-slate-400 mt-1"></p>
+			<p id="modal-description" class="text-slate-300 mt-4"></p>
+			<ul id="modal-features" class="mt-6 space-y-2 text-slate-300"></ul>
 			</div>
-			<div class="modal-actions">
-			<a id="modal-cta" href="#" target="_blank" rel="noopener" class="gradient-button text-white px-5 py-3 rounded-full font-semibold">
-				Quero este formato
-			</a>
-			<button type="button" class="btn-close" onclick="closeModal()">Fechar</button>
-			</div>
+	
+		<div class="mt-8 flex gap-3 justify-center pt-4">
+		<a id="modal-cta"
+			href="#"
+			target="_blank"
+			rel="noopener"
+			class="gradient-button text-white px-5 py-3 rounded-full font-semibold"
+			aria-label="Abrir WhatsApp e iniciar conversa sobre este plano">
+			Quero este formato
+		</a>
+		<button onclick="closeModal()" class="px-5 py-3 rounded-full bg-slate-800 text-slate-200 hover:bg-slate-700">Fechar</button>
+		</div>
 		</div>
 		</div>
 	</div>
 	</div>
-    </section>
+
+
 
 	<section id="contato" class="py-20 md:py-28">
-	  <div class="mx-auto max-w-7xl px-6 text-center fade-in-section">
+	<div class="mx-auto max-w-7xl px-6 text-center fade-in-section">
 		<h2 class="text-3xl md:text-4xl font-bold text-white">Pronto para Elevar seu Ambiente de Dados?</h2>
 		<div class="w-24 h-1.5 bg-cyan-500 mx-auto mt-5 mb-10"></div>
 		<p class="max-w-2xl mx-auto text-lg text-slate-400 leading-relaxed mb-12">
-		  Agende uma conversa sem compromisso. Vamos avaliar seu ambiente e criar um plano sob medida para elevar sua performance, segurança e estabilidade ao próximo nível.
+		Agende uma conversa sem compromisso. Vamos avaliar seu ambiente e criar um plano sob medida para elevar sua performance, segurança e estabilidade ao próximo nível.
 		</p>
 		<div class="bg-slate-900 border border-slate-800 text-slate-300 rounded-xl shadow-2xl shadow-cyan-900/20 p-8 md:p-10 max-w-lg mx-auto text-left">
-		  <address class="space-y-6 not-italic">
+		<address class="space-y-6 not-italic">
 			<div class="flex items-center">
-			  <svg class="h-8 w-8 text-cyan-400 mr-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" /></svg>
-			  <span class="font-semibold text-lg text-white">Daniel De Liz</span>
+			<svg class="h-8 w-8 text-cyan-400 mr-5" viewBox="0 0 20 20" fill="currentColor">
+				<path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+			</svg>
+			<span class="font-semibold text-lg text-white">Daniel De Liz</span>
 			</div>
+	
+			<!-- WhatsApp com mensagem pré-preenchida -->
 			<div class="flex items-center">
-			  <svg class="h-7 w-7 text-cyan-400 mr-5" viewBox="0 0 24 24" fill="currentColor"><path d="M20.52 3.48A11.85 11.85 0 0 0 12.07 0C5.44 0 .07 5.37.07 12c0 2.11.55 4.15 1.59 5.97L0 24l6.22-1.63A11.87 11.87 0 0 0 12.07 24h.01c6.63 0 12-5.37 12-12 0-3.2-1.25-6.21-3.56-8.52zM12.08 21.5h-.01a9.43 9.43 0 0 1-4.79-1.29l-.34-.2-3.69.97.99-3.59-.22-.37a9.45 9.45 0 0 1-1.44-5.03c0-5.22 4.25-9.47 9.48-9.47 2.53 0 4.91.99 6.7 2.78a9.44 9.44 0 0 1 2.78 6.69c0 5.23-4.25 9.48-9.46 9.48zm5.47-7.15c-.3-.15-1.77-.87-2.05-.96-.27-.1-.47-.15-.66.15s-.76.96-.94 1.16-.35.22-.65.07c-.3-.15-1.27-.47-2.42-1.49-.9-.8-1.5-1.79-1.67-2.09-.17-.3-.02-.46.13-.61.14-.14.3-.37.45-.55.15-.18.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.66-1.59-.91-2.18-.24-.57-.49-.5-.66-.51-.17 0-.37-.01-.57-.01s-.52.07-.79.37c-.27.3-1.04 1.02-1.04 2.48s1.07 2.88 1.22 3.08c.15.2 2.1 3.2 5.08 4.48.71.31 1.27.5 1.7.64.71.23 1.36.2 1.87.12.57-.08 1.77-.72 2.02-1.42.25-.7.25-1.3.17-1.42-.07-.12-.27-.2-.57-.35z"/></svg>
-			  <a href="https://wa.me/5547988350637?text=Ol%C3%A1%20Daniel!%20Quero%20conversar%20sobre%20uma%20consulta%20de%20banco%20de%20dados%20Oracle." target="_blank" rel="noopener" class="hover:text-cyan-400 transition-colors text-lg font-semibold">Fale agora comigo no WhatsApp</a>
+			<svg class="h-7 w-7 text-cyan-400 mr-5" viewBox="0 0 24 24" fill="currentColor">
+				<path d="M20.52 3.48A11.85 11.85 0 0 0 12.07 0C5.44 0 .07 5.37.07 12c0 2.11.55 4.15 1.59 5.97L0 24l6.22-1.63A11.87 11.87 0 0 0 12.07 24h.01c6.63 0 12-5.37 12-12 0-3.2-1.25-6.21-3.56-8.52zM12.08 21.5h-.01a9.43 9.43 0 0 1-4.79-1.29l-.34-.2-3.69.97.99-3.59-.22-.37a9.45 9.45 0 0 1-1.44-5.03c0-5.22 4.25-9.47 9.48-9.47 2.53 0 4.91.99 6.7 2.78a9.44 9.44 0 0 1 2.78 6.69c0 5.23-4.25 9.48-9.46 9.48zm5.47-7.15c-.3-.15-1.77-.87-2.05-.96-.27-.1-.47-.15-.66.15s-.76.96-.94 1.16-.35.22-.65.07c-.3-.15-1.27-.47-2.42-1.49-.9-.8-1.5-1.79-1.67-2.09-.17-.3-.02-.46.13-.61.14-.14.3-.37.45-.55.15-.18.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.66-1.59-.91-2.18-.24-.57-.49-.5-.66-.51-.17 0-.37-.01-.57-.01s-.52.07-.79.37c-.27.3-1.04 1.02-1.04 2.48s1.07 2.88 1.22 3.08c.15.2 2.1 3.2 5.08 4.48.71.31 1.27.5 1.7.64.71.23 1.36.2 1.87.12.57-.08 1.77-.72 2.02-1.42.25-.7.25-1.3.17-1.42-.07-.12-.27-.2-.57-.35z"/>
+			</svg>
+			<a href="https://wa.me/5547988350637?text=Ol%C3%A1%20Daniel!%20Quero%20conversar%20sobre%20uma%20consulta%20de%20banco%20de%20dados%20Oracle."
+				target="_blank"
+				rel="noopener"
+				class="hover:text-cyan-400 transition-colors text-lg font-semibold">
+				Fale agora comigo no WhatsApp
+			</a>
 			</div>
+	
 			<div class="flex items-center">
-			  <svg class="h-7 w-7 text-cyan-400 mr-5" viewBox="0 0 20 20" fill="currentColor"><path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" /><path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" /></svg>
-			  <a href="mailto:Danielpdelll@gmail.com" class="hover:text-cyan-400 transition-colors text-lg">Danielpdelll@gmail.com</a>
+			<svg class="h-7 w-7 text-cyan-400 mr-5" viewBox="0 0 20 20" fill="currentColor">
+				<path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+				<path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+			</svg>
+			<a href="mailto:Danielpdelll@gmail.com" class="hover:text-cyan-400 transition-colors text-lg">
+				Danielpdelll@gmail.com
+			</a>
 			</div>
+	
 			<div class="flex items-center">
 			<svg class="h-7 w-7 text-cyan-400 mr-5" fill="currentColor" viewBox="0 0 24 24">
 				<path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
 			</svg>
-			<a href="https://www.linkedin.com/in/danieldeliz-88" 
-				target="_blank" 
-				rel="noopener" 
-				class="hover:text-cyan-400 transition-colors text-lg">
-				Conecte-se comigo no LinkedIn
+			<a href="https://www.linkedin.com/in/danieldeliz-88" target="_blank" rel="noopener" class="hover:text-cyan-400 transition-colors text-lg">
+				www.linkedin.com/in/danieldeliz-88
 			</a>
 			</div>
-
-		  </address>
+		</address>
 		</div>
-	  </div>
+	</div>
 	</section>
 	</main>
+
 
   <footer class="bg-slate-950 text-slate-500 py-8 border-t border-slate-800/50">
     <div class="mx-auto max-w-7xl px-6 text-center">
@@ -676,163 +657,32 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script>
 
 <script>
-  // ===== Helpers =====
-  const $ = (s, el=document)=> el.querySelector(s);
-  const $$ = (s, el=document)=> Array.from(el.querySelectorAll(s));
-
-  // scroll suave com offset do header
-  function scrollToId(id){
-    const el = document.getElementById(id);
-    if(!el) return;
-    const header = $('#site-header');
-    const off = header ? header.offsetHeight + 8 : 0;
-    const y = el.getBoundingClientRect().top + window.pageYOffset - off;
-    window.scrollTo({ top:y, behavior:'smooth' });
-  }
-
-  function setupAnchorLinks(){
-    $$('a[href^="#"]').forEach(a=>{
-      const href = a.getAttribute('href');
-      if(!href || href === '#') return;
-      a.addEventListener('click', (e)=>{
-        const id = href.slice(1);
-        const target = document.getElementById(id);
-        if(!target) return;
-        e.preventDefault();
-        // fecha menu mobile se estiver aberto
-        closeMobileMenu();
-        scrollToId(id);
-      });
-    });
-  }
-
-  // ===== Menu Mobile com fechamento automático =====
-  let mobileMenuOpen = false;
-  let outsideClickHandler = null;
-
-  function openMobileMenu(){
-    const btn = $('#mobile-menu-button');
-    const menu = $('#mobile-menu');
-    if(!btn || !menu) return;
-    if(mobileMenuOpen) return;
-    menu.classList.remove('hidden');
-    btn.setAttribute('aria-expanded','true');
-    document.body.classList.add('overflow-hidden');
-    mobileMenuOpen = true;
-
-    outsideClickHandler = (ev)=>{
-      if(menu.contains(ev.target) || btn.contains(ev.target)) return;
-      closeMobileMenu();
-    };
-    document.addEventListener('click', outsideClickHandler);
-  }
-
-  function closeMobileMenu(){
-    const btn = $('#mobile-menu-button');
-    const menu = $('#mobile-menu');
-    if(!btn || !menu) return;
-    if(!mobileMenuOpen) return;
-    menu.classList.add('hidden');
-    btn.setAttribute('aria-expanded','false');
-    document.body.classList.remove('overflow-hidden');
-    mobileMenuOpen = false;
-    if(outsideClickHandler){
-      document.removeEventListener('click', outsideClickHandler);
-      outsideClickHandler = null;
-    }
-  }
-
-  function setupMobileMenu(){
-    const btn = $('#mobile-menu-button');
-    const menu = $('#mobile-menu');
-    if(!btn || !menu) return;
-
-    btn.addEventListener('click', ()=>{
-      mobileMenuOpen ? closeMobileMenu() : openMobileMenu();
-    });
-
-    // Esc fecha
-    document.addEventListener('keydown', (e)=>{
-      if(e.key === 'Escape' && mobileMenuOpen) closeMobileMenu();
-    });
-
-    // clique em qualquer item do menu fecha (o scroll é tratado por setupAnchorLinks)
-    $$('a', menu).forEach(a=>{
-      a.addEventListener('click', ()=> closeMobileMenu());
-    });
-  }
-
-  // ===== Carrossel base =====
-  // Configuração inicial do carrossel
+  // ====== Helpers ======
   function setupCarousel(rootId) {
     const root = document.getElementById(rootId);
     if (!root) return;
 
-    const viewport = root; // container com overflow hidden
+    const viewport = root; // quem rola é o container com overflow-x:hidden
+    const track = root.querySelector('.carousel-track');
     const prev = root.querySelector('.carousel-btn.prev');
     const next = root.querySelector('.carousel-btn.next');
+
     const step = () => Math.max(viewport.clientWidth * 0.8, 300);
 
-    prev?.addEventListener('click', () => viewport.scrollBy({ left: -step(), behavior: 'smooth' }));
-    next?.addEventListener('click', () => viewport.scrollBy({ left:  step(), behavior: 'smooth' }));
+    prev?.addEventListener('click', () =>
+      viewport.scrollBy({ left: -step(), behavior: 'smooth' })
+    );
+    next?.addEventListener('click', () =>
+      viewport.scrollBy({ left: step(), behavior: 'smooth' })
+    );
   }
 
-  // Loop infinito contínuo (sem pausa)
-	function enableInfiniteCarousel(rootId, speedPxPerSec = 40) {
-	const root = document.getElementById(rootId);
-	if (!root) return;
-	const track = root.querySelector('.carousel-track');
-	if (!track) return;
-	
-	// Evita inicializar 2x
-	if (track.classList.contains('is-marquee')) return;
-	
-	// Duplicar itens para evitar "pulo" no loop (apenas uma vez)
-	if (!track.dataset.duplicated) {
-		const frag = document.createDocumentFragment();
-		Array.from(track.children).forEach(node => frag.appendChild(node.cloneNode(true)));
-		track.appendChild(frag);
-		track.dataset.duplicated = 'true';
-	}
-	
-	// Função que aplica/atualiza a animação conforme o tamanho
-	const applyMarquee = () => {
-		// remove/força reflow para reiniciar suavemente
-		track.classList.remove('is-marquee');
-		// força reflow (reinicia a animação sem "pulo")
-		// eslint-disable-next-line no-unused-expressions
-		track.offsetHeight;
-	
-		const distance = track.scrollWidth / 2;          // px (metade porque duplicamos)
-		const duration = distance / speedPxPerSec;       // s (velocidade em px/s)
-		track.style.setProperty('--marquee-distance', `${distance}px`);
-		track.style.setProperty('--marquee-duration', `${duration}s`);
-		track.classList.add('is-marquee');
-	};
-	
-	// Observa mudanças de tamanho e reaplica a animação
-	const ro = new ResizeObserver(applyMarquee);
-	ro.observe(track);
-	
-	// Primeira ativação
-	requestAnimationFrame(applyMarquee);
-	}
-
-document.addEventListener('DOMContentLoaded', () => {
-  // Habilitar setas (opcional; não interfere no autoplay)
-  setupCarousel('carousel-tec');
-  setupCarousel('carousel-setores');
-
-  // Iniciar autoplay infinito sem pausa
-  enableInfiniteCarousel('carousel-tec', 15);   // ajuste de velocidade (px/s)
-  enableInfiniteCarousel('carousel-setores', 15);
-});
   // ---- MODAL DE PLANOS (dados) ----
   const planDetails = {
     healthCheck: {
       title: "Health Check",
       subtitle: "Diagnóstico e Relatório Detalhado",
-      imageSrc: "imagens/Planos/monitoring.jpg",
+      imageSrc: "imagens/planos/monitoring.jpg",
       imageAlt: "Monitores com gráficos de desempenho e telemetria em tempo real",
       description:
         "Ideal para empresas que precisam de uma avaliação pontual e aprofundada do seu ambiente. Varredura completa em performance, segurança e configuração, com plano de ação priorizado.",
@@ -849,7 +699,7 @@ document.addEventListener('DOMContentLoaded', () => {
     retainer: {
       title: "Retainer Mensal",
       subtitle: "Seu DBA Especialista as‑a‑Service",
-      imageSrc: "imagens/Planos/noc.png",
+      imageSrc: "imagens/planos/noc.png",
       imageAlt: "Sala de NOC com múltiplos monitores exibindo painéis de monitoramento",
       description:
         "Tranquilidade de ter um especialista sênior cuidando do coração do seu negócio. Monitoramento constante, resposta rápida a incidentes e otimização contínua.",
@@ -866,7 +716,7 @@ document.addEventListener('DOMContentLoaded', () => {
     project: {
       title: "Projeto Específico",
       subtitle: "Escopo Fechado e Entrega de Alto Impacto",
-      imageSrc: "imagens/Planos/datacenter.jpg",
+      imageSrc: "imagens/planos/datacenter.jpg",
       imageAlt: "Corredor de datacenter com racks iluminados em azul",
       description:
         "Para desafios complexos que exigem um especialista dedicado. Migrações, RAC/Data Guard, GoldenGate e tuning de alta complexidade com mínimo impacto ao negócio.",
@@ -882,85 +732,100 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
+  // ===== Config WhatsApp
   const WHATS_NUMBER = "5547988350637";
-  const buildWaLink = (msg) => `https://wa.me/${WHATS_NUMBER}?text=${encodeURIComponent(msg || "Olá Daniel!")}`;
+  const buildWaLink = (msg) =>
+    `https://wa.me/${WHATS_NUMBER}?text=${encodeURIComponent(msg || "Olá Daniel!")}`;
 
+  // ===== Estado de listeners do modal (uma única vez)
   let _resizeHandler = null;
   let _outsideClickHandler = null;
 
-  function setModalOffset(){
-    // garante que a caixa nunca encoste no topo ao considerar o header sticky
-    const header = document.getElementById('site-header');
+  // ===== Ajusta o offset do modal abaixo do header
+  function setModalOffset() {
+    const header = document.querySelector('header');
+    const modal  = document.getElementById('plan-modal');
+    const dialog = modal?.querySelector('.dialog');
+    const wrapper = modal?.querySelector('.modal-wrapper'); // nome real no HTML
+
     const h = header ? header.offsetHeight : 0;
-    const modal = document.getElementById('plan-modal');
-    const wrapper = modal?.querySelector('.modal-wrapper');
-    if(wrapper){ wrapper.style.paddingTop = `${Math.max(16, h + 12)}px`; }
+    // padding do wrapper e altura do dialog respeitando header
+    if (wrapper) wrapper.style.paddingTop = `${16}px`; // já temos o top controlado via CSS --header-h
+    if (dialog)  dialog.style.maxHeight = `calc(100vh - ${h + 32}px)`;
+
+    // CSS var pra overlay já existe no CSS
+    modal?.style.setProperty('--header-h', `${h}px`);
   }
 
-  function openModal(planKey){
+  // ===== Abre modal
+  function openModal(planKey) {
     const planModal = document.getElementById('plan-modal');
-    const details   = planDetails[planKey];
-    if(!planModal || !details) return;
+    const details = planDetails[planKey];
+    if (!planModal || !details) return;
 
-    // popula conteúdo
+    // Conteúdo
     const img = document.getElementById('modal-image');
-    if(img){ img.src = details.imageSrc || ""; img.alt = details.imageAlt || details.title || "Imagem ilustrativa"; }
-    document.getElementById('modal-title').textContent       = details.title;
-    document.getElementById('modal-subtitle').textContent    = details.subtitle;
+    if (img) {
+      img.src = details.imageSrc || "";
+      img.alt = details.imageAlt || details.title || "Imagem ilustrativa";
+    }
+    document.getElementById('modal-title').textContent = details.title;
+    document.getElementById('modal-subtitle').textContent = details.subtitle;
     document.getElementById('modal-description').textContent = details.description;
 
-    const ul = document.getElementById('modal-features'); ul.innerHTML = "";
-    details.features.forEach(f=>{
+    const ul = document.getElementById('modal-features');
+    ul.innerHTML = '';
+    details.features.forEach(f => {
       const li = document.createElement('li');
       li.innerHTML = `<span class="text-cyan-400 mr-2">✓</span>${f}`;
       ul.appendChild(li);
     });
 
-    // CTA – garante link do Whats
+    // CTA -> Whats com mensagem do plano (usa id certo!)
     const cta = document.getElementById('modal-cta');
-    cta.setAttribute('href', buildWaLink(details.waMessage));
-    cta.setAttribute('target','_blank');
-    cta.setAttribute('rel','noopener');
+    if (cta) {
+      cta.href = buildWaLink(details.waMessage);
+      cta.target = "_blank";
+      cta.rel = "noopener";
+    }
 
-    // mostra modal
+    // Mostra e aplica offset
+    setModalOffset();
     planModal.classList.remove('hidden');
-    planModal.classList.add('open');
     document.body.classList.add('modal-open');
 
-    setModalOffset();
-    _resizeHandler = ()=> setModalOffset();
+    // Recalcular em resize
+    _resizeHandler = () => setModalOffset();
     window.addEventListener('resize', _resizeHandler);
 
-    // fecha ao clicar fora (mas não dentro do dialog)
+    // Fechar clicando fora do .dialog
     const dialog = planModal.querySelector('.dialog');
-    _outsideClickHandler = (ev)=>{
-      if(!dialog.contains(ev.target)) closeModal();
+    _outsideClickHandler = (e) => {
+      if (!dialog) return;
+      if (!dialog.contains(e.target)) closeModal();
     };
     planModal.addEventListener('click', _outsideClickHandler);
-
-    // Esc fecha
-    document.addEventListener('keydown', onEscClose);
   }
 
-  function onEscClose(e){
-    if(e.key === 'Escape' || e.key === 'Esc') closeModal();
-  }
-
-  function closeModal(){
+  // ===== Fecha modal
+  function closeModal() {
     const planModal = document.getElementById('plan-modal');
-    if(!planModal) return;
+    if (!planModal) return;
 
-    planModal.classList.remove('open');
     planModal.classList.add('hidden');
     document.body.classList.remove('modal-open');
 
-    // limpa handlers
-    if(_resizeHandler){ window.removeEventListener('resize', _resizeHandler); _resizeHandler = null; }
-    if(_outsideClickHandler){ planModal.removeEventListener('click', _outsideClickHandler); _outsideClickHandler = null; }
-    document.removeEventListener('keydown', onEscClose);
+    if (_resizeHandler) {
+      window.removeEventListener('resize', _resizeHandler);
+      _resizeHandler = null;
+    }
+    if (_outsideClickHandler) {
+      planModal.removeEventListener('click', _outsideClickHandler);
+      _outsideClickHandler = null;
+    }
   }
 
-  // Autoplay infinito para carrossel
+  // === Autoplay infinito para carrossel ===
   function enableCarouselAutoplay(rootId, speedPxPerSec = 45) {
     const root = document.getElementById(rootId);
     if (!root) return;
@@ -968,10 +833,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (reduce) return;
 
-    const viewport = root;
+    const viewport = root; // quem rola é o container
     const track = root.querySelector('.carousel-track');
     if (!track) return;
 
+    // Evita duplicar mais de uma vez
     if (!track.dataset.duplicated) {
       const originalChildren = Array.from(track.children);
       const frag = document.createDocumentFragment();
@@ -980,20 +846,33 @@ document.addEventListener('DOMContentLoaded', () => {
       track.dataset.duplicated = 'true';
     }
 
-    let halfWidth = 1;
-    const recalc = () => { const total = track.scrollWidth; halfWidth = Math.max(1, total / 2); };
-    const ro = new ResizeObserver(recalc); ro.observe(track);
-    if (document.readyState === 'complete') recalc(); else window.addEventListener('load', recalc);
+    let halfWidth = 1; // largura do conteúdo original
+    const recalc = () => {
+      const total = track.scrollWidth;
+      halfWidth = Math.max(1, total / 2);
+    };
 
-    let rafId = null, lastTs = 0, paused = false, wheelTimer = null;
+    const ro = new ResizeObserver(recalc);
+    ro.observe(track);
+    if (document.readyState === 'complete') recalc();
+    else window.addEventListener('load', recalc);
+
+    let rafId = null;
+    let lastTs = 0;
+    let paused = false;
+    let wheelTimer = null;
 
     const step = (ts) => {
       if (paused) { lastTs = ts; rafId = requestAnimationFrame(step); return; }
       if (!lastTs) lastTs = ts;
-      const dt = (ts - lastTs) / 1000; lastTs = ts;
+      const dt = (ts - lastTs) / 1000;
+      lastTs = ts;
+
       const dx = speedPxPerSec * dt;
       viewport.scrollLeft += dx;
-      if (viewport.scrollLeft >= halfWidth) viewport.scrollLeft -= halfWidth;
+      if (viewport.scrollLeft >= halfWidth) {
+        viewport.scrollLeft -= halfWidth;
+      }
       rafId = requestAnimationFrame(step);
     };
 
@@ -1002,19 +881,30 @@ document.addEventListener('DOMContentLoaded', () => {
     const pause = () => { paused = true; };
     const resume = () => { paused = false; };
 
+    // Pausas úteis
     root.addEventListener('mouseenter', pause);
     root.addEventListener('mouseleave', resume);
     root.addEventListener('focusin', pause);
     root.addEventListener('focusout', resume);
 
+    // Toque/arraste
     let isPointerDown = false;
     track.addEventListener('pointerdown', () => { isPointerDown = true; pause(); }, { passive: true });
     window.addEventListener('pointerup', () => { if (isPointerDown) { isPointerDown = false; resume(); } });
 
-    root.addEventListener('wheel', () => { pause(); clearTimeout(wheelTimer); wheelTimer = setTimeout(resume, 1200); }, { passive: true });
+    // Roda do mouse: pausa e retoma sozinho após 1.2s sem novas rodas
+    root.addEventListener('wheel', () => {
+      pause();
+      clearTimeout(wheelTimer);
+      wheelTimer = setTimeout(resume, 1200);
+    }, { passive: true });
 
-    document.addEventListener('visibilitychange', () => { if (document.hidden) stop(); else play(); });
+    // Aba oculta/visível
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) stop(); else play();
+    });
 
+    // Desliga snap durante autoplay para suavizar
     const prevSnap = track.style.scrollSnapType;
     track.style.scrollSnapType = 'none';
     root.addEventListener('mouseenter', () => { track.style.scrollSnapType = prevSnap || ''; });
@@ -1025,14 +915,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ====== Bootstrap ======
   document.addEventListener('DOMContentLoaded', () => {
-    setupMobileMenu();
-    setupAnchorLinks();
+    // Menu mobile com aria-expanded
+    const mobileMenuButton = document.getElementById('mobile-menu-button');
+    const mobileMenu = document.getElementById('mobile-menu');
+    if (mobileMenuButton && mobileMenu) {
+      mobileMenuButton.addEventListener('click', () => {
+        const expanded = mobileMenuButton.getAttribute('aria-expanded') === 'true';
+        mobileMenuButton.setAttribute('aria-expanded', String(!expanded));
+        mobileMenu.classList.toggle('hidden');
+      });
+    }
 
-    // ESC fecha modal
+    // Fechar modal com ESC
     document.addEventListener('keydown', (e) => {
       const planModal = document.getElementById('plan-modal');
-      const isOpen = planModal && !planModal.classList.contains('hidden');
-      if (isOpen && (e.key === 'Escape' || e.key === 'Esc')) closeModal();
+      if (!planModal) return;
+      const isOpen = !planModal.classList.contains('hidden');
+      if (isOpen && (e.key === 'Escape' || e.key === 'Esc')) {
+        closeModal();
+      }
     });
 
     // Fade-in
@@ -1090,6 +991,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // three.js – globo
+    function latLonToVec3(lat, lon, r) {
+      const phi = (90 - lat) * Math.PI/180, theta = (lon + 180) * Math.PI/180;
+      return new THREE.Vector3(
+        -r * Math.sin(phi) * Math.cos(theta),
+         r * Math.cos(phi),
+         r * Math.sin(phi) * Math.sin(theta)
+      );
+    }
+
     const container = document.getElementById('globe-container');
     const startGlobe = () => {
       if (!container || typeof THREE === 'undefined') return;
@@ -1145,7 +1055,11 @@ document.addEventListener('DOMContentLoaded', () => {
     setupCarousel('carousel-tec');
     setupCarousel('carousel-setores');
 
+    // Autoplay infinito (loop contínuo, pausa no hover/toque/visibilidade)
+    enableCarouselAutoplay('carousel-tec', 48);
+    enableCarouselAutoplay('carousel-setores', 42);
   });
 </script>
 </body>
 </html>
+
